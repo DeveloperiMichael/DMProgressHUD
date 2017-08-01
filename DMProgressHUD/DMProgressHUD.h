@@ -66,6 +66,11 @@ typedef NS_ENUM(NSInteger, DMProgressHUDAnimation) {
 
 
 /**
+ 详细信息
+ */
+@property (nonatomic, copy) NSString *detailInfo;
+
+/**
  显示时间
  */
 @property (nonatomic, assign) CGFloat showDuration;
@@ -82,7 +87,9 @@ typedef NS_ENUM(NSInteger, DMProgressHUDAnimation) {
               animated:(BOOL)animated;
 
 
-
+- (void)showAfterDelay:(NSTimeInterval)delay
+    autoHideAfterDelay:(NSTimeInterval)showDuration
+              animated:(BOOL)animated;
 
 #pragma mark -
 #pragma mark -  hide

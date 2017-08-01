@@ -24,6 +24,9 @@
 
 @property (nonatomic, strong) UIView *accessory;
 
+@property (nonatomic, weak) UIView *showInView;
+
+@property (nonatomic, strong) UIActivityIndicatorView *indicator;
 
 @end
 
@@ -35,9 +38,11 @@
         self.frame = CGRectMake(0, 0, inView.bounds.size.width, inView.bounds.size.height);
         [self setupData];
         NSAssert(inView, @"inView must not be nil");
-        [inView addSubview:self];
+        _showInView = inView;
         [self setupSubviewsContrains];
+        [inView addSubview:self];
         self.alpha = 0.0;
+        //[self setSubviewsBackgroundColor];
     }
     return self;
 }
@@ -48,14 +53,17 @@
 - (void)setupData {
     self.hudMode = 0;
     self.animationType = 0;
-    self.message = @"正在加载";
+    _message = @"正在加载...";
+    //_detailInfo = @"请稍后";
     self.showDuration = 2.5;
 }
 
 
 - (void)showAfterDelay:(NSTimeInterval)delay
               animated:(BOOL)animated {
-    
+    if (self.superview==nil) {
+        [_showInView addSubview:self];
+    }
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         
         if (animated) {
@@ -70,6 +78,10 @@
     
 }
 
+- (void)showAfterDelay:(NSTimeInterval)delay autoHideAfterDelay:(NSTimeInterval)showDuration animated:(BOOL)animated {
+    [self showAfterDelay:delay animated:animated];
+    [self hideAfterDelay:showDuration animated:animated];
+}
 
 - (void)hideAfterDelay:(NSTimeInterval)delay
               animated:(BOOL)animated {
@@ -124,7 +136,6 @@
 - (UIView *)containerView {
     if (!_containerView) {
         _containerView = [[UIView alloc] init];
-        _containerView.backgroundColor = [UIColor whiteColor];
     }
     return _containerView;
 }
@@ -132,7 +143,9 @@
 - (UIView *)contentView {
     if (!_contentView) {
         _contentView = [[UIView alloc] init];
-        _contentView.backgroundColor = [UIColor yellowColor];
+        _contentView.backgroundColor = [UIColor colorWithRed:0/255.0 green:0/255.0 blue:0/255.0 alpha:0.5];
+        _contentView.layer.masksToBounds = YES;
+        _contentView.layer.cornerRadius = 4;
     }
     return _contentView;
 }
@@ -140,7 +153,7 @@
 - (UIView *)accessory {
     if (!_accessory) {
         _accessory = [[UIView alloc] init];
-        _accessory.backgroundColor = [UIColor purpleColor];
+        [_accessory addSubview:self.indicator];
     }
     return _accessory;
 }
@@ -149,9 +162,8 @@
     if (!_messageLabel) {
         _messageLabel = [[UILabel alloc] init];
         _messageLabel.textAlignment = NSTextAlignmentCenter;
-        _messageLabel.text = @"NSTextAlignmentCenter";
-        _messageLabel.backgroundColor = [UIColor brownColor];
-        _messageLabel.font = [UIFont fontWithName:@"Helvetica-Bold" size:16];
+        _messageLabel.text = _message;
+        _messageLabel.font = [UIFont systemFontOfSize:16.0];
     }
     return _messageLabel;
 }
@@ -160,13 +172,36 @@
     if (!_detailLabel) {
         _detailLabel = [[UILabel alloc] init];
         _detailLabel.textAlignment = NSTextAlignmentCenter;
-        _detailLabel.text = @"_messageLabel.backgroundColor = [UIColor brownColor];";
-        _detailLabel.backgroundColor = [UIColor brownColor];
+        _detailLabel.text = _detailInfo;
         _detailLabel.font = [UIFont systemFontOfSize:14.0];
     }
     return _detailLabel;
 }
 
+- (UIActivityIndicatorView *)indicator {
+    if (!_indicator) {
+        _indicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
+        [_indicator startAnimating];
+    }
+    return _indicator;
+}
+
+- (void)setMessage:(NSString *)message {
+    _messageLabel.text = message;
+}
+
+- (void)setDetailInfo:(NSString *)detailInfo {
+    _detailLabel.text = detailInfo;
+}
+
+- (void)setSubviewsBackgroundColor {
+    _backgroundView.backgroundColor = [UIColor yellowColor];
+    _containerView.backgroundColor = [UIColor redColor];
+    _contentView.backgroundColor = [UIColor whiteColor];
+    _indicator.backgroundColor = [UIColor grayColor];
+    _messageLabel.backgroundColor = [UIColor brownColor];
+    _detailLabel.backgroundColor = [UIColor brownColor];
+}
 
 #pragma mark -
 #pragma mark -  SetupSubviewsContrains
@@ -183,27 +218,33 @@
     }];
     
     [_accessory mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.mas_equalTo(self.contentView).mas_offset(5);
+        make.top.mas_equalTo(self.contentView).mas_offset(10);
         make.centerX.mas_equalTo(self.contentView);
-        make.width.height.mas_equalTo(90);
+        make.width.height.mas_equalTo(48);
+    }];
+    
+    [_indicator mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.edges.equalTo(_accessory);
     }];
     
     [_messageLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.mas_equalTo(_accessory.mas_bottom);
         make.centerX.mas_equalTo(self.contentView);
-        make.width.lessThanOrEqualTo(self.contentView).mas_offset(-10);
+        make.width.lessThanOrEqualTo(self.contentView).mas_offset(-20);
     }];
+    
+    float labelMarign = _messageLabel.text.length>0?5.0:0.0;
     
     [_detailLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         make.centerX.equalTo(self.contentView);
-        make.top.mas_equalTo(_messageLabel.mas_bottom);
-        make.width.lessThanOrEqualTo(self.contentView).mas_offset(-10);
-        make.bottom.lessThanOrEqualTo(self.contentView).mas_offset(-5);
+        make.top.mas_equalTo(_messageLabel.mas_bottom).mas_offset(labelMarign);
+        make.width.lessThanOrEqualTo(self.contentView).mas_offset(-20);
+        make.bottom.lessThanOrEqualTo(self.contentView).mas_offset(-10);
     }];
     
     [_contentView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.center.equalTo(self.containerView);
-        make.width.height.mas_equalTo(100).priorityLow();
+        make.width.height.mas_equalTo(68).priorityLow();
         make.width.lessThanOrEqualTo(self.containerView).mas_offset(-20);
         make.height.lessThanOrEqualTo(self.containerView).mas_offset(-20);
     }];
@@ -212,7 +253,7 @@
     [_containerView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.centerX.mas_equalTo(self.backgroundView);
         make.centerY.mas_equalTo(self.backgroundView).mas_offset(-50);
-        make.height.width.mas_equalTo(120).priorityLow();
+        make.height.width.mas_equalTo(88).priorityLow();
         make.width.lessThanOrEqualTo(self.backgroundView).mas_offset(-20);
         make.height.lessThanOrEqualTo(self.backgroundView).mas_offset(-20);
     }];

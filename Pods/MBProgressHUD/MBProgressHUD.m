@@ -57,7 +57,7 @@ static const CGFloat MBDefaultDetailsLabelFontSize = 12.f;
 @implementation MBProgressHUD
 
 #pragma mark - Class methods
-//直接显示默认HUD
+
 + (instancetype)showHUDAddedTo:(UIView *)view animated:(BOOL)animated {
     MBProgressHUD *hud = [[self alloc] initWithView:view];
     hud.removeFromSuperViewOnHide = YES;
@@ -65,7 +65,7 @@ static const CGFloat MBDefaultDetailsLabelFontSize = 12.f;
     [hud showAnimated:animated];
     return hud;
 }
-//直接删除view上的HUD
+
 + (BOOL)hideHUDForView:(UIView *)view animated:(BOOL)animated {
     MBProgressHUD *hud = [self HUDForView:view];
     if (hud != nil) {
@@ -75,7 +75,7 @@ static const CGFloat MBDefaultDetailsLabelFontSize = 12.f;
     }
     return NO;
 }
-//查询view上的HUD
+
 + (MBProgressHUD *)HUDForView:(UIView *)view {
     NSEnumerator *subviewsEnum = [view.subviews reverseObjectEnumerator];
     for (UIView *subview in subviewsEnum) {
@@ -88,7 +88,6 @@ static const CGFloat MBDefaultDetailsLabelFontSize = 12.f;
 
 #pragma mark - Lifecycle
 
-//初始化操作
 - (void)commonInit {
     // Set default values for properties
     _animationType = MBProgressHUDAnimationFade;
@@ -112,9 +111,6 @@ static const CGFloat MBDefaultDetailsLabelFontSize = 12.f;
     [self updateIndicators];
     [self registerForNotifications];
 }
-
-#pragma mark -
-#pragma mark -  初始化方法
 
 - (instancetype)initWithFrame:(CGRect)frame {
     if ((self = [super initWithFrame:frame])) {
@@ -319,18 +315,16 @@ static const CGFloat MBDefaultDetailsLabelFontSize = 12.f;
 
     MBBackgroundView *backgroundView = [[MBBackgroundView alloc] initWithFrame:self.bounds];
     backgroundView.style = MBProgressHUDBackgroundStyleSolidColor;
+    backgroundView.backgroundColor = [UIColor clearColor];
     backgroundView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    backgroundView.alpha = 1.0f;
-    backgroundView.backgroundColor = [UIColor greenColor];
+    backgroundView.alpha = 0.f;
     [self addSubview:backgroundView];
     _backgroundView = backgroundView;
 
     MBBackgroundView *bezelView = [MBBackgroundView new];
-    //将自动调整蒙版转换为约束
     bezelView.translatesAutoresizingMaskIntoConstraints = NO;
     bezelView.layer.cornerRadius = 5.f;
-    bezelView.alpha = 1.f;
-    bezelView.backgroundColor = [UIColor yellowColor];
+    bezelView.alpha = 0.f;
     [self addSubview:bezelView];
     _bezelView = bezelView;
     [self updateBezelMotionEffects];
@@ -369,15 +363,13 @@ static const CGFloat MBDefaultDetailsLabelFontSize = 12.f;
 
     UIView *topSpacer = [UIView new];
     topSpacer.translatesAutoresizingMaskIntoConstraints = NO;
-    topSpacer.hidden = NO;
-    topSpacer.backgroundColor = [UIColor brownColor];
+    topSpacer.hidden = YES;
     [bezelView addSubview:topSpacer];
     _topSpacer = topSpacer;
 
     UIView *bottomSpacer = [UIView new];
     bottomSpacer.translatesAutoresizingMaskIntoConstraints = NO;
-    bottomSpacer.hidden = NO;
-    bottomSpacer.backgroundColor = [UIColor brownColor];
+    bottomSpacer.hidden = YES;
     [bezelView addSubview:bottomSpacer];
     _bottomSpacer = bottomSpacer;
 }
