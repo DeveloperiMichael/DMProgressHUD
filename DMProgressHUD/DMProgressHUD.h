@@ -32,7 +32,7 @@ typedef NS_ENUM(NSInteger, DMProgressHUDMode) {
  - Animation3: Animation3 description
  */
 typedef NS_ENUM(NSInteger, DMProgressHUDAnimation) {
-    Animation1 = 0,
+    DMProgressHUDAnimationScale = 0,
     Animation2,
     Animation3,
 };
@@ -42,7 +42,12 @@ typedef NS_ENUM(NSInteger, DMProgressHUDAnimation) {
 
 
 /**
- 自定义DMProgressHUD上面的view
+ 自定义DMProgressHUD上面的view,UIActivityIndicatorView的位置
+ */
+@property (nonatomic, strong) UIView *indicatorView;
+
+/**
+ 自定义DMProgressHUD上面的view,contentView的位置
  */
 @property (nonatomic, strong) UIView *customView;
 
@@ -83,13 +88,11 @@ typedef NS_ENUM(NSInteger, DMProgressHUDAnimation) {
 /**
  开始加载动画
  */
-- (void)showAfterDelay:(NSTimeInterval)delay
-              animated:(BOOL)animated;
 
 
-- (void)showAfterDelay:(NSTimeInterval)delay
-    autoHideAfterDelay:(NSTimeInterval)showDuration
-              animated:(BOOL)animated;
+- (void)showAnimated:(BOOL)animated duration:(NSTimeInterval)duration;
+
+- (void)showAnimated:(BOOL)animated;
 
 #pragma mark -
 #pragma mark -  hide
@@ -97,8 +100,7 @@ typedef NS_ENUM(NSInteger, DMProgressHUDAnimation) {
 /**
  停止加载动画
  */
-- (void)hideAfterDelay:(NSTimeInterval)delay
-              animated:(BOOL)animated;
 
+- (void)hideAnimated:(BOOL)animated;
 
 @end

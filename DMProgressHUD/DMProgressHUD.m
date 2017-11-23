@@ -53,57 +53,61 @@
 - (void)setupData {
     self.hudMode = 0;
     self.animationType = 0;
-    _message = @"正在加载...";
-    //_detailInfo = @"请稍后";
-    self.showDuration = 2.5;
+    //_message = @"正在加载...";
+    self.showDuration = 0.0;
 }
 
 
-- (void)showAfterDelay:(NSTimeInterval)delay
-              animated:(BOOL)animated {
+- (void)showAnimated:(BOOL)animated {
     if (self.superview==nil) {
         [_showInView addSubview:self];
     }
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        
-        if (animated) {
-            [UIView animateWithDuration:0.25 animations:^{
-                self.alpha = 1.0;
-            }];
-        }else{
+    if (animated) {
+        [UIView animateWithDuration:0.25 animations:^{
             self.alpha = 1.0;
-        }
-        
-    });
+        }];
+        [self handleAnimationWithType:0];
+    }else{
+        self.alpha = 1.0;
+    }
     
 }
 
-- (void)showAfterDelay:(NSTimeInterval)delay autoHideAfterDelay:(NSTimeInterval)showDuration animated:(BOOL)animated {
-    [self showAfterDelay:delay animated:animated];
-    [self hideAfterDelay:showDuration animated:animated];
+- (void)showAnimated:(BOOL)animated duration:(NSTimeInterval)duration {
+    self.showDuration = duration;
+    [self showAnimated:animated];
+    __weak typeof(self) weakSelf = self;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(self.showDuration * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [weakSelf hideAnimated:YES];
+    });
 }
 
-- (void)hideAfterDelay:(NSTimeInterval)delay
-              animated:(BOOL)animated {
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        
-        if (animated) {
-            [UIView animateWithDuration:0.25 animations:^{
-                self.alpha = 0.0;
-            }];
-        }else{
+- (void)hideAnimated:(BOOL)animated {
+    if (animated) {
+        [UIView animateWithDuration:0.25 animations:^{
             self.alpha = 0.0;
-        }
-        
-        [self removeFromSuperview];
-    });
+        }];
+    }else{
+        self.alpha = 0.0;
+    }
+    
+    [self removeFromSuperview];
 }
 
 - (void)handleAnimationWithType:(DMProgressHUDAnimation)animationType {
     switch (animationType) {
         case 0:
         {
-            
+            [self.contentView.layer removeAllAnimations];
+            CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"transform.scale"];
+            animation.fromValue = [NSNumber numberWithFloat:0.0]; // 开始时的倍率
+            //animation.byValue = [NSNumber numberWithFloat:1.2];
+            animation.toValue = [NSNumber numberWithFloat:1.0];
+            animation.removedOnCompletion = NO;
+            animation.fillMode = kCAFillModeForwards;
+            animation.duration = 0.5;
+            animation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
+            [self.contentView.layer addAnimation:animation forKey:@"contentView.animation"];
         }
             break;
         case 1:
